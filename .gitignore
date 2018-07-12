@@ -1,0 +1,9 @@
+
+entra21-java-exemplo-banco-dados-01-master/build.xml
+entra21-java-exemplo-banco-dados-01-master/build/classes/.netbeans_automatic_build
+entra21-java-exemplo-banco-dados-01-master/build/classes/.netbeans_update_resources
+entra21-java-exemplo-banco-dados-01-master/build/classes/bean/ClienteBean.class
+*.class
+*.mf
+*.xml
+*.properties
