@@ -68,7 +68,33 @@ public class ClienteDAO { //DAO = DATA ACCESS OBJECT
         
         return false;}
     
-    public ClienteBean obterClientePeloId(int id){return null;}
+    public ClienteBean obterClientePeloId(int id){
+        
+        String sql = "SELECT id, nome, data_nascimento, cpf, ativo FROM clientes WHERE                      id = ?";
+        Connection conexao = ConexaoFactory.obterConexao();
+        if(conexao != null){
+            try{
+                PreparedStatement ps = conexao.prepareStatement(sql);
+                ps.setInt(1, id); 
+                ps.execute();
+                ResultSet resultSet = ps.getResultSet();
+                if(resultSet.next()){
+                    ClienteBean cliente = new ClienteBean();
+                    cliente.setId(resultSet.getInt("id"));
+                    cliente.setNome(resultSet.getString("nome"));
+                    cliente.setData(resultSet.getString("data_nascimento"));
+                    cliente.setCpf(resultSet.getString("cpf"));
+                    cliente.setAtivo(resultSet.getBoolean("ativo"));
+                    return cliente;
+                }
+            }catch (SQLException e) {
+                e.printStackTrace();
+            }finally {
+                ConexaoFactory.fecharConexao();
+            }
+        }return null;}
+  
+        
     
     public List<ClienteBean> obterClientes(){
         List<ClienteBean> clientes = new ArrayList<>();

@@ -274,7 +274,10 @@ public class ClienteListaCadastro implements BaseGUInterface {
                     JOptionPane.showMessageDialog(null, "Seleciona um registro");
                     return;
                 }
-                linhaSelecionada = jTable.getSelectedRow();
+                int linhaSelecionada = jTable.getSelectedRow();
+                int id = Integer.parseInt(jTable.getValueAt(linhaSelecionada, 01).toString());
+                ClienteBean cliente = new ClienteDAO().obterClientePeloId(id);
+                jTextFieldNome.setText(cliente.getNome());
 
             }
         });
