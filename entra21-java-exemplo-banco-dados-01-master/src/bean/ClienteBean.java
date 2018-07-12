@@ -5,20 +5,21 @@ package bean;
  */
 public class ClienteBean {
 
-    private String id, nome, data, cpf;
-    private boolean ativo, inativo;
+    private int id;
+    private String nome, data, cpf;
+    private boolean ativo;
     
     /**
      * @return the id
      */
-    public String getId() {
+    public int getId() {
         return id;
     }
 
     /**
      * @param id the id to set
      */
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -78,17 +79,4 @@ public class ClienteBean {
         this.ativo = ativo;
     }
 
-    /**
-     * @return the inativo
-     */
-    public boolean isInativo() {
-        return inativo;
-    }
-
-    /**
-     * @param inativo the inativo to set
-     */
-    public void setInativo(boolean inativo) {
-        this.inativo = inativo;
-    }
 }
