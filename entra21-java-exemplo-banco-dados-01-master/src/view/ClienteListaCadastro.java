@@ -56,18 +56,18 @@ public class ClienteListaCadastro implements BaseGUInterface {
         popularTabela();
         jFrame.setVisible(true);
     }
-    
-    private void popularTabela(){
+
+    private void popularTabela() {
         ClienteDAO clienteDAO = new ClienteDAO();
         List<ClienteBean> clientes = clienteDAO.obterClientes();
-        
+
         /*
-        for(int i = 0; i < clientes.size(); i++){
-            ClienteBean cliente = clientes.get(i);
-        }
-        */
+         for(int i = 0; i < clientes.size(); i++){
+         ClienteBean cliente = clientes.get(i);
+         }
+         */
         //FOREACH -> FORMA REDUZIDA DO FOR
-        for(ClienteBean cliente: clientes){
+        for (ClienteBean cliente : clientes) {
             dtm.addRow(new Object[]{
                 cliente.getId(),
                 cliente.getNome(),
@@ -75,8 +75,6 @@ public class ClienteListaCadastro implements BaseGUInterface {
             });
         }
     }
-    
-    
 
     public void instanciarComponentes() {
         //JLabel´s
@@ -214,7 +212,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
                 //data
                 //cpf
                 //ativo/inativo
-               
+
                 if (jTextFieldNome.getText().trim().isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Nome deve ser preenchido");
                     jTextFieldNome.requestFocus();
@@ -236,22 +234,24 @@ public class ClienteListaCadastro implements BaseGUInterface {
                     JOptionPane.showMessageDialog(null, "Deve ser selecionado se é ativo ou passivo");
                     return;
                 }
-                
-                ClienteBean cliente= new ClienteBean();
+
+                ClienteBean cliente = new ClienteBean();
                 cliente.setNome(jTextFieldNome.getText());
-                cliente.setData("1994-06-21");
+                cliente.setData(Utilitarios.obterPadraoAmericano(jFormattedTextFieldData.getText()));
                 cliente.setCpf(cpf);
-                int id = new ClienteDAO().inserir(cliente);
-                cliente.setId(id);
-                jTextFieldID.setText(String.valueOf(id));
-                dtm.addRow(new Object[]{
-                    cliente.getId(),
-                    cliente.getNome(),
-                    cliente.getCpf()
-                });
-                
-                
-                
+
+                if (jTextFieldID.getText().isEmpty()) {
+
+                    int id = new ClienteDAO().inserir(cliente);
+                    cliente.setId(id);
+                    jTextFieldID.setText(String.valueOf(id));
+                    dtm.addRow(new Object[]{
+                        cliente.getId(),
+                        cliente.getNome(),
+                        cliente.getCpf()
+                    });
+                }
+
                 limparCampos();
             }
         });
@@ -275,9 +275,12 @@ public class ClienteListaCadastro implements BaseGUInterface {
                     return;
                 }
                 int linhaSelecionada = jTable.getSelectedRow();
-                int id = Integer.parseInt(jTable.getValueAt(linhaSelecionada, 01).toString());
+                int id = Integer.parseInt(jTable.getValueAt(linhaSelecionada, 0).toString());
                 ClienteBean cliente = new ClienteDAO().obterClientePeloId(id);
                 jTextFieldNome.setText(cliente.getNome());
+                jTextFieldID.setText(String.valueOf(cliente.getId()));
+                jFormattedTextFieldCPF.setText(cliente.getCpf());
+                jFormattedTextFieldData.setText(Utilitarios.obterPadraoBr(cliente.getData()));
 
             }
         });
@@ -302,7 +305,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
                 int linhaSelecionada = jTable.getSelectedRow();
                 int id = Integer.parseInt(jTable.getValueAt(linhaSelecionada, 0)
                         .toString());
-                
+
                 new ClienteDAO().apagar(id);
                 dtm.removeRow(linhaSelecionada);
 
