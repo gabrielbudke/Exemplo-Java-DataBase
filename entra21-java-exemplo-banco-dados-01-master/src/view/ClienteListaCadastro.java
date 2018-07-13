@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import javax.swing.JButton;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.List;
@@ -27,7 +29,7 @@ import javax.swing.text.MaskFormatter;
  * @author Henrique Silva / Rafael Alipio Harada
  */
 public class ClienteListaCadastro implements BaseGUInterface {
-
+    
     private int linhaSelecionada = -1;
     private JFrame jFrame;
     private JLabel jLabelID, jLabelNome, jLabelData, jLabelCPF;
@@ -40,7 +42,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
     private JFormattedTextField jFormattedTextFieldCPF, jFormattedTextFieldData;
     private ButtonGroup buttonGroup;
     private ArrayList<ClienteBean> dados = new ArrayList<>();
-
+    
     public ClienteListaCadastro() {
         instanciarComponentes();
         gerarTela();
@@ -54,9 +56,10 @@ public class ClienteListaCadastro implements BaseGUInterface {
         acaoBotaoExcluir();
         acaoBotaoTeclas();
         popularTabela();
+        acaoCodigoLostFocus();
         jFrame.setVisible(true);
     }
-
+    
     private void popularTabela() {
         ClienteDAO clienteDAO = new ClienteDAO();
         List<ClienteBean> clientes = clienteDAO.obterClientes();
@@ -75,7 +78,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
             });
         }
     }
-
+    
     public void instanciarComponentes() {
         //JLabel´s
         jLabelID = new JLabel("ID");
@@ -108,7 +111,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
         //ButtonGroup
         buttonGroup = new ButtonGroup();
     }
-
+    
     @Override
     public void gerarTela() {
         jFrame = new JFrame("Cadastro Cliente");
@@ -118,7 +121,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
         jFrame.setResizable(false);
         jFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
-
+    
     @Override
     public void adicionarComponentes() {
         jFrame.add(jLabelID);
@@ -136,7 +139,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
         jFrame.add(jRadioButtonInativo);
         jFrame.add(jScrollPane);
     }
-
+    
     @Override
     public void gerarLocalizacoes() {
         jLabelID.setLocation(10, 10);
@@ -154,7 +157,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
         jButtonExcluir.setLocation(135, 245);
         jScrollPane.setLocation(245, 10);
     }
-
+    
     @Override
     public void gerarDimensoes() {
         jLabelID.setSize(20, 20);
@@ -172,7 +175,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
         jButtonExcluir.setSize(100, 50);
         jScrollPane.setSize(270, 290);
     }
-
+    
     private void configurarJTable() {
         dtm = new DefaultTableModel();
         dtm.addColumn("ID");
@@ -180,12 +183,12 @@ public class ClienteListaCadastro implements BaseGUInterface {
         dtm.addColumn("CPF");
         jTable.setModel(dtm);
     }
-
+    
     private void definirjRadioButton() {
         buttonGroup.add(jRadioButtonAtivo);
         buttonGroup.add(jRadioButtonInativo);
     }
-
+    
     private void configurarJFormattedTextField() {
         try {
             MaskFormatter maskFormatter = new MaskFormatter("###.###.###-##");
@@ -202,7 +205,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
             JOptionPane.showMessageDialog(null, "Chame o Pastor");
         }
     }
-
+    
     private void acaoBotaoSalvar() {
         jButtonSalvar.addActionListener(new ActionListener() {
             @Override
@@ -234,14 +237,14 @@ public class ClienteListaCadastro implements BaseGUInterface {
                     JOptionPane.showMessageDialog(null, "Deve ser selecionado se é ativo ou passivo");
                     return;
                 }
-
+                
                 ClienteBean cliente = new ClienteBean();
                 cliente.setNome(jTextFieldNome.getText());
                 cliente.setData(Utilitarios.obterPadraoAmericano(jFormattedTextFieldData.getText()));
                 cliente.setCpf(cpf);
-
+                
                 if (jTextFieldID.getText().isEmpty()) {
-
+                    
                     int id = new ClienteDAO().inserir(cliente);
                     cliente.setId(id);
                     jTextFieldID.setText(String.valueOf(id));
@@ -250,13 +253,32 @@ public class ClienteListaCadastro implements BaseGUInterface {
                         cliente.getNome(),
                         cliente.getCpf()
                     });
+                } else {
+                    try {
+                        int id = Integer.parseInt(jTextFieldID.getText());
+                        cliente.setId(id);
+                        boolean alterou = new ClienteDAO().alterar(cliente);
+                        if (alterou) {
+                            JOptionPane.showMessageDialog(null, "Cliente alterado com sucesso");
+                            int linhaSelecionada = jTable.getSelectedRow();
+                            dtm.setValueAt(cliente.getId(), linhaSelecionada, 0);
+                            dtm.setValueAt(cliente.getNome(), linhaSelecionada, 1);
+                            dtm.setValueAt(cliente.getCpf(), linhaSelecionada, 2);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Não foi possível alterar");                            
+                        }
+                        
+                    } catch (NumberFormatException el) {
+                        JOptionPane.showMessageDialog(null, "Código deve ser um código válido");
+                        jTextFieldID.requestFocus();
+                    }
                 }
-
+                
                 limparCampos();
             }
         });
     }
-
+    
     private void limparCampos() {
         jTextFieldID.setText("");
         jFormattedTextFieldCPF.setText("");
@@ -265,7 +287,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
         linhaSelecionada = -1;
         jTextFieldID.requestFocus();
     }
-
+    
     private void acaoBotaoEditar() {
         jButtonEditar.addActionListener(new ActionListener() {
             @Override
@@ -281,11 +303,11 @@ public class ClienteListaCadastro implements BaseGUInterface {
                 jTextFieldID.setText(String.valueOf(cliente.getId()));
                 jFormattedTextFieldCPF.setText(cliente.getCpf());
                 jFormattedTextFieldData.setText(Utilitarios.obterPadraoBr(cliente.getData()));
-
+                
             }
         });
     }
-
+    
     private void preencherCampos(ClienteBean dados) {
         jTextFieldNome.setText(dados.getNome());
         jTextFieldID.setText(
@@ -297,7 +319,7 @@ public class ClienteListaCadastro implements BaseGUInterface {
         jFormattedTextFieldCPF.setText(dados.getCpf());
         jRadioButtonAtivo.setSelected(dados.isAtivo());
     }
-
+    
     private void acaoBotaoExcluir() {
         jButtonExcluir.addActionListener(new ActionListener() {
             @Override
@@ -305,14 +327,14 @@ public class ClienteListaCadastro implements BaseGUInterface {
                 int linhaSelecionada = jTable.getSelectedRow();
                 int id = Integer.parseInt(jTable.getValueAt(linhaSelecionada, 0)
                         .toString());
-
+                
                 new ClienteDAO().apagar(id);
                 dtm.removeRow(linhaSelecionada);
-
+                
             }
         });
     }
-
+    
     private void acaoBotaoTeclas() {
         jTextFieldID.addKeyListener(new KeyListener() {
             public void keyPressed(KeyEvent e) {
@@ -325,14 +347,14 @@ public class ClienteListaCadastro implements BaseGUInterface {
                         break;
                 }
             }
-
+            
             public void keyTyped(KeyEvent e) {
             }
-
+            
             public void keyReleased(KeyEvent e) {
             }
         });
-
+        
         jTextFieldNome.addKeyListener(new KeyListener() {
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
@@ -344,14 +366,14 @@ public class ClienteListaCadastro implements BaseGUInterface {
                         break;
                 }
             }
-
+            
             public void keyTyped(KeyEvent e) {
             }
-
+            
             public void keyReleased(KeyEvent e) {
             }
         });
-
+        
         jFormattedTextFieldData.addKeyListener(new KeyListener() {
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
@@ -363,14 +385,14 @@ public class ClienteListaCadastro implements BaseGUInterface {
                         break;
                 }
             }
-
+            
             public void keyTyped(KeyEvent e) {
             }
-
+            
             public void keyReleased(KeyEvent e) {
             }
         });
-
+        
         jFormattedTextFieldCPF.addKeyListener(new KeyListener() {
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
@@ -382,14 +404,53 @@ public class ClienteListaCadastro implements BaseGUInterface {
                         break;
                 }
             }
-
+            
             public void keyTyped(KeyEvent e) {
             }
-
+            
             public void keyReleased(KeyEvent e) {
             }
         });
-
+        
     }
-
+    
+    private void acaoCodigoLostFocus() {
+        jTextFieldID.addFocusListener(new FocusListener() {
+            
+            @Override
+            public void focusGained(FocusEvent e) {
+                
+            }
+            
+            @Override
+            public void focusLost(FocusEvent e) {
+                if(!jTextFieldID.getText().isEmpty());
+                try {
+                    int id = Integer.parseInt(jTextFieldID.getText());
+                    ClienteBean cliente = new ClienteDAO().obterClientePeloId(id);
+                    if (cliente == null) {
+                        JOptionPane.showMessageDialog(null, "Registro não encontrado");
+                        jTextFieldID.requestFocus();
+                    } else {
+                        jTextFieldNome.setText(cliente.getNome());
+                        jFormattedTextFieldCPF.setText(cliente.getCpf());
+                        jFormattedTextFieldData.setText(Utilitarios.obterPadraoBr(cliente.getData()));
+                        buttonGroup.clearSelection();
+                        
+                        if (cliente.isAtivo()) {
+                            jRadioButtonAtivo.setSelected(true);
+                        } else {
+                            jRadioButtonInativo.setSelected(true);
+                        }
+                    }
+                    
+                } catch (NumberFormatException el) {
+                    JOptionPane.showMessageDialog(null, "Campo deve conter somente números");
+                }
+                
+            }
+        });
+        
+    }
+    
 }
